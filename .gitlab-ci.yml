@@ -6,7 +6,7 @@ build:
     - echo "Start building App"
     - npm update
     #- npm install react-scripts
-    - npm audit fix
+    #- npm audit fix
     - npm build
     #- npx react-native run-android
     - echo "Build successfully!"
