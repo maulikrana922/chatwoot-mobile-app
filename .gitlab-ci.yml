@@ -4,7 +4,7 @@ build:
   script: 
     #- npm cache clean --force
     - echo "Start building App"
-    - npm update
+    #- npm update
     #- npm install react-scripts
     #- npm audit fix
     - npm build
