@@ -1,7 +1,16 @@
-stages:
-    - build
-build_project:
-    stage: build
-    script:
-        - xcodebuild clean -project CI-Demo-iOS/CI-Demo-iOS.xcodeproj -scheme CI-Demo-iOS
-        - xcodebuild test -project CI-Demo-iOS/CI-Demo-iOS.xcodeproj -scheme CI-Demo-iOS -destination 'platform=iOS Simulator,name=iPhone XR,OS=12.0'
+build:
+  stage: build
+  image: node
+  script: 
+    #- npm cache clean --force
+    - echo "Start building App"
+    - npm update
+    #- npm install react-scripts
+    - npm audit fix
+    - npm build
+    #- npx react-native run-android
+    - echo "Build successfully!"
+  artifacts:
+      expire_in: 1 hour
+      paths:
+        - android/app/build/outputs/
