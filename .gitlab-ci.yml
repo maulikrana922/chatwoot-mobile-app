@@ -1,16 +1,14 @@
+stages:
+    - build
+
 build:
-  stage: build
-  image: node
-  script: 
-    #- npm cache clean --force
-    - echo "Start building App"
-    #- npm update
-    #- npm install react-scripts
-    #- npm audit fix
-    - npm build
-    #- npx react-native run-android
-    - echo "Build successfully!"
-  artifacts:
-      expire_in: 1 hour
-      paths:
-        - android/app/build/outputs/
+    image: reactnativecommunity/react-native-android
+    stage: build
+    script:
+        - yarn install
+        - cd android && chmod +x gradlew
+        #- ./gradlew assembleMyBuild --stacktrace
+        - gradle wrapper
+    artifacts:
+        paths:
+            - android/app/build/outputs/
