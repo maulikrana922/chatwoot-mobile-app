@@ -1,30 +1,81 @@
-version: '2.1'
-orbs:
-  node: circleci/node@2.0.2
-      
+# Based on https://github.com/CircleCI-Public/circleci-demo-react-native
+version: 2.1
 jobs:
-  build-and-test:
+  node:
+    working_directory: ~/app
     docker:
-      - image: circleci/node:12.22.0
+      - image: cimg/node:14.15
     steps:
       - checkout
       - restore_cache:
-          name: Restore Yarn Package Cache
-          keys:
-            - yarn-packages-{{ checksum "yarn.lock" }}
-      - run:
-          name: Install Dependencies
-          command: yarn install --immutable
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
+      - restore_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+      - run: yarn install --frozen-lockfile
       - save_cache:
-          name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "yarn.lock" }}
+          key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
           paths:
-            - .yarn/cache
-            - .yarn/unplugged
+            - ~/.cache/yarn
+      - save_cache:
+          key: node-v1-{{ checksum "package.json" }}-{{ arch }}
+          paths:
+            - node_modules
+
+      - persist_to_workspace:
+          root: ~/app
+          paths:
+            - node_modules
+
+  ios-build:
+    working_directory: ~/app/android
+    macos:
+      xcode: 11.3.0
+
+    steps:
+      - checkout:
+          path: ~/app
+      - attach_workspace:
+          at: ~/app
+      - run: yarn install --frozen-lockfile
+      - restore_cache:
+          key: pods-v1-{{ checksum "ios/Podfile.lock" }}-{{ arch }}
       - run:
-          command: yarn run test
-          name: Run YARN tests
+          command: pod install
+          working_directory: ios
+      - run:
+          command: xcodebuild clean archive -workspace testCiCdReactNative.xcworkspace -scheme testCiCdReactNative -archivePath testCiCdReactNative.xcarchive CODE_SIGNING_ALLOWED=NO | xcpretty
+          working_directory: ios
+      - save_cache:
+          key: pods-v1-{{ checksum "ios/Podfile.lock" }}-{{ arch }}
+          paths:
+            - ios/Pods
+
+  android-build:
+    working_directory: ~/app/android
+    docker:
+      - image: circleci/android:api-29-node
+    steps:
+      - checkout:
+          path: ~/app
+      - attach_workspace:
+          at: ~/app
+      - run:
+          name: Bundle *.aap & *.apk
+          command: ./gradlew bundleRelease assembleRelease
+      - store_artifacts:
+          path: app/build/outputs/bundle/release
+          destination: release-aab/
+      - store_artifacts:
+          path: app/build/outputs/apk/release
+          destination: release-apk/
+
 workflows:
-  test_my_app:
+  node-android:
     jobs:
-      - build-and-test
+      - node
+      - android-build:
+          requires:
+            - node
+      - ios-build:
+          requires:
+            - node
