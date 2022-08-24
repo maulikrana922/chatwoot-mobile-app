@@ -60,7 +60,7 @@ jobs:
       - attach_workspace:
           at: ~/app
       - run:
-          name: Bundle *.aap & *.apk
+          name: Bundle *.apk
           command: ./gradlew bundleRelease assembleRelease
       - store_artifacts:
           path: app/build/outputs/bundle/release
