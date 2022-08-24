@@ -7,8 +7,8 @@ build:
     script:
         - yarn install
         - cd android && chmod +x gradlew
-        #- ./gradlew assembleMyBuild --stacktrace
-        - gradle wrapper
+        - ./gradlew assembleMyBuild --stacktrace
+        #- gradle wrapper
     artifacts:
         paths:
             - android/app/build/outputs/
